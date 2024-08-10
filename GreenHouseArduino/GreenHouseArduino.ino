@@ -4,8 +4,8 @@ DHT11 dht11(D4);
 const int A1A = D3;
 const int A1B = D2;
 const int motorDelay = 30000; // ms
-const int openTemp = 30; // C
-const int closeTemp = 20; // C
+const int openTemp = 26; // C
+const int closeTemp = 24; // C
 bool isOpen = false;
 
 void setup() {
@@ -20,29 +20,29 @@ void setup() {
   close();
 }
 
-void close(){
+void open(){
         // Motor A
-        Serial.println("Motor CLOSE start");
+        Serial.println("Motor OPEN start");
         digitalWrite(A1A, HIGH);
         digitalWrite(A1B, LOW);
 
         delay(motorDelay);
 
-        Serial.println("Motor CLOSE stop");
+        Serial.println("Motor OPEN stop");
         digitalWrite(A1A, LOW);
         digitalWrite(A1B, LOW);
         isOpen = false;
 }
 
-void open(){
+void close(){
         // Motor A
-        Serial.println("Motor OPEN start");
+        Serial.println("Motor CLOSE start");
         digitalWrite(A1A, LOW);
         digitalWrite(A1B, HIGH);
 
         delay(motorDelay);
 
-        Serial.println("Motor OPEN stop");
+        Serial.println("Motor CLOSE stop");
         digitalWrite(A1A, LOW);
         digitalWrite(A1B, LOW);
         isOpen = true;
