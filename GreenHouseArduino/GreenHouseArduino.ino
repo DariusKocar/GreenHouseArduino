@@ -3,12 +3,13 @@
 DHT11 dht11(D4);
 const int A1A = D3;
 const int A1B = D2;
-const int fullMotorTime = 20000; // ms
+const int fullMotorTime = 40000; // ms
 const int openTemp = 30; // C
 const int closeTemp = 20; // C
-bool isOpen = false;
 int openPercentage = 0; // %
-int onePercentMS = 500; // %
+int onePercentMS = 300; // %
+int currentMoveCounter = 0; 
+int maxMoveCount = 300; 
 
 void open(int motorOnTime){
         // Motor A
@@ -21,7 +22,6 @@ void open(int motorOnTime){
         Serial.println("Motor OPEN stop");
         digitalWrite(A1A, LOW);
         digitalWrite(A1B, LOW);
-        isOpen = false;
 }
 
 void close(int motorOnTime){
@@ -35,33 +35,48 @@ void close(int motorOnTime){
         Serial.println("Motor CLOSE stop");
         digitalWrite(A1A, LOW);
         digitalWrite(A1B, LOW);
-        isOpen = true;
 }
 
 void fullClose(){
+  Serial.print("FULL close");
   close(fullMotorTime);
   openPercentage = 0;
+  currentMoveCounter = 0;
+}
+
+void fullOpen(){
+  Serial.print("FULL open");
+  open(fullMotorTime);
+  openPercentage = 100;
+  currentMoveCounter = 0;
 }
 
 void setOpenPercentage(int newPercentage){
-  if (newPercentage > openPercentage){
-    int diff = newPercentage - openPercentage;
-    open(diff * onePercentMS);
-    Serial.print("NEW percentage ");
-    Serial.print(newPercentage);
-    Serial.println("%");
-  }
-  if (newPercentage < openPercentage){
-    int diff = openPercentage - newPercentage;
-    close(diff * onePercentMS);
-    Serial.print("NEW percentage ");
-    Serial.print(newPercentage);
-    Serial.println("%");
+  currentMoveCounter++;
+  if (currentMoveCounter > maxMoveCount){
+    // Motor always closes faster than opens. This drifts to close. So Close fullly once in a while to reset
+      fullClose();
   }
 
-Serial.print("NEW percentage ");
-    Serial.print(newPercentage);
-    Serial.println("%");
+  if (newPercentage == 100) {
+      fullOpen();
+  }
+  else if (newPercentage == 0) {
+      fullClose();
+  } 
+  else {
+    int diff = newPercentage - openPercentage;
+    if (newPercentage > openPercentage){
+      open(diff * onePercentMS);
+    }
+    else{
+      close(diff * onePercentMS);
+    }
+  }
+
+  Serial.print("NEW percentage ");
+  Serial.print(newPercentage);
+  Serial.println("%");
   openPercentage = newPercentage;
 }
 
@@ -92,22 +107,8 @@ void loop() {
         Serial.print(humidity);
         Serial.println(" %");
 
-        Serial.print("Test: ");
-        Serial.println(((double)openTemp - closeTemp)/100.0);
-        Serial.print("Test2: ");
-        Serial.println(max(0, temperature - closeTemp));
         int newPercentage = (int)100*(((double)openTemp - closeTemp)/100.0 * max(0, temperature - closeTemp));
         setOpenPercentage(newPercentage);
-        // if (isOpen){
-        //   if (temperature < closeTemp) {
-        //     close();
-        //   }
-        // }
-        // else {
-        //   if (temperature > openTemp) {
-        //     open();
-        //   }
-        // }
     } else {
         // Print error message based on the error code.
         Serial.println(DHT11::getErrorString(result));
