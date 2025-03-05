@@ -113,7 +113,7 @@ void loop() {
         // Print error message based on the error code.
         Serial.println(DHT11::getErrorString(result));
     }
-    // Read temp every second
-    delay(1000);
+    // Read temp every n second
+    delay(30000);
 }
 
